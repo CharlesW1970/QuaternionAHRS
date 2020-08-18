@@ -12,7 +12,6 @@
   */
 #include "QuaternionAHRS.h"
 #include <math.h>
-#include "includes.h"
 
 volatile float twoKp = twoKpDef; // 2 * proportional gain (Kp)
 volatile float twoKi = twoKiDef; // 2 * integral gain (Ki)
