@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    QuaternionAHRS.c
   * @author  Hongxi Wong
-  * @version V1.0.0
-  * @date    2020/8/18
+  * @version V1.0.1
+  * @date    2020/8/19
   * @brief
   ******************************************************************************
   * @attention
@@ -32,7 +32,7 @@ static float invSqrt(float x);
 
 /**
   * @brief          AHRS algorithm update
-  * @param[1-3]     gyro measurement in rad
+  * @param[1-3]     gyro measurement in rad/s
   * @param[4-6]     accelerometer measurement in m/s2
   * @param[7-9]     magnetometer measurement in uT
   */
@@ -171,7 +171,7 @@ void Quaternion_AHRS_Update(float gx, float gy, float gz, float ax, float ay, fl
 
 /**
   * @brief          IMU algorithm update
-  * @param[1-3]     gyro measurement in rad
+  * @param[1-3]     gyro measurement in rad/s
   * @param[4-6]     accelerometer measurement in m/s2
   */
 void Quaternion_AHRS_UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az)
@@ -270,6 +270,19 @@ void Quaternion_AHRS_UpdateIMU(float gx, float gy, float gz, float ax, float ay,
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
+}
+
+/**
+  * @brief        Convert quaternion to eular angle
+  * @param[1]     Yaw pointer in degree/s
+  * @param[2]     Pitch pointer in degree/s
+  * @param[3]     Roll pointer in degree/s
+  */
+void Get_EulerAngle(float *yaw, float *pitch, float *roll)
+{
+    *yaw = -atan2f(2.0f * (q0 * q3 + q1 * q2), 2.0f * (q0 * q0 + q1 * q1) - 1.0f) * 57.295779513f;
+    *pitch = -atan2f(2.0f * (q0 * q1 + q2 * q3), 2.0f * (q0 * q0 + q3 * q3) - 1.0f) * 57.295779513f;
+    *roll = -asinf(-2.0f * (q1 * q3 - q0 * q2)) * 57.295779513f;
 }
 
 static float invSqrt(float x)

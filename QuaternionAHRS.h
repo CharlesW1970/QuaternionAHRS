@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    QuaternionAHRS.c
   * @author  Hongxi Wong
-  * @version V1.0.0
-  * @date    2020/8/18
+  * @version V1.0.1
+  * @date    2020/8/19
   * @brief
   ******************************************************************************
   * @attention
@@ -30,6 +30,7 @@ extern volatile float q0, q1, q2, q3; // quaternion of sensor frame relative to 
 
 void Quaternion_AHRS_Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz);
 void Quaternion_AHRS_UpdateIMU(float gx, float gy, float gz, float ax, float ay, float az);
+void Get_EulerAngle(float *yaw, float *pitch, float *roll);
 float invSqrt(float x);
 
 #endif
