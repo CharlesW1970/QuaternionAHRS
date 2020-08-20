@@ -2,8 +2,8 @@
   ******************************************************************************
   * @file    QuaternionAHRS.c
   * @author  Hongxi Wong
-  * @version V1.0.1
-  * @date    2020/8/19
+  * @version V1.0.2
+  * @date    2020/8/20
   * @brief
   ******************************************************************************
   * @attention
@@ -12,6 +12,8 @@
   */
 #include "QuaternionAHRS.h"
 #include <math.h>
+
+AHRS_t AHRS = {0};
 
 volatile float twoKp = twoKpDef; // 2 * proportional gain (Kp)
 volatile float twoKi = twoKiDef; // 2 * integral gain (Ki)
@@ -167,6 +169,11 @@ void Quaternion_AHRS_Update(float gx, float gy, float gz, float ax, float ay, fl
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
+
+    AHRS.q[0] = q0;
+    AHRS.q[1] = q1;
+    AHRS.q[2] = q2;
+    AHRS.q[3] = q3;
 }
 
 /**
@@ -270,19 +277,56 @@ void Quaternion_AHRS_UpdateIMU(float gx, float gy, float gz, float ax, float ay,
     q1 *= recipNorm;
     q2 *= recipNorm;
     q3 *= recipNorm;
+
+    AHRS.q[0] = q0;
+    AHRS.q[1] = q1;
+    AHRS.q[2] = q2;
+    AHRS.q[3] = q3;
 }
 
 /**
   * @brief        Convert quaternion to eular angle
-  * @param[1]     Yaw pointer in degree/s
-  * @param[2]     Pitch pointer in degree/s
-  * @param[3]     Roll pointer in degree/s
   */
-void Get_EulerAngle(float *yaw, float *pitch, float *roll)
+void Get_EulerAngle(void)
 {
-    *yaw = -atan2f(2.0f * (q0 * q3 + q1 * q2), 2.0f * (q0 * q0 + q1 * q1) - 1.0f) * 57.295779513f;
-    *pitch = -atan2f(2.0f * (q0 * q1 + q2 * q3), 2.0f * (q0 * q0 + q3 * q3) - 1.0f) * 57.295779513f;
-    *roll = -asinf(-2.0f * (q1 * q3 - q0 * q2)) * 57.295779513f;
+    static uint8_t count = 0;
+
+    AHRS.Yaw = atan2f(2.0f * (q0 * q3 + q1 * q2), 2.0f * (q0 * q0 + q1 * q1) - 1.0f) * 57.295779513f;
+    AHRS.Pitch = atan2f(2.0f * (q0 * q1 + q2 * q3), 2.0f * (q0 * q0 + q3 * q3) - 1.0f) * 57.295779513f;
+    AHRS.Roll = asinf(-2.0f * (q1 * q3 - q0 * q2)) * 57.295779513f;
+
+    if (count == 0)
+    {
+        AHRS.Yaw_Angle_Last = AHRS.Yaw;
+        AHRS.Pitch_Angle_Last = AHRS.Pitch;
+        AHRS.Roll_Angle_Last = AHRS.Roll;
+    }
+
+    // Yaw rount count
+    if (AHRS.Yaw - AHRS.Yaw_Angle_Last > 180.0f)
+        AHRS.Yaw_Round_Count--;
+    else if (AHRS.Yaw - AHRS.Yaw_Angle_Last < -180.0f)
+        AHRS.Yaw_Round_Count++;
+    // Pitch rount count
+    if (AHRS.Pitch - AHRS.Pitch_Angle_Last > 180.0f)
+        AHRS.Pitch_Round_Count--;
+    else if (AHRS.Pitch - AHRS.Pitch_Angle_Last < -180.0f)
+        AHRS.Pitch_Round_Count++;
+    // Roll rount count
+    // if (AHRS.Roll - AHRS.Roll_Angle_Last > 180.0f)
+    //     AHRS.Roll_Round_Count--;
+    // else if (AHRS.Roll - AHRS.Roll_Angle_Last < -180.0f)
+    //     AHRS.Roll_Round_Count++;
+
+    AHRS.Yaw_Total_Angle = 360.0f * AHRS.Yaw_Round_Count + AHRS.Yaw;
+    AHRS.Pitch_Total_Angle = 360.0f * AHRS.Pitch_Round_Count + AHRS.Pitch;
+    // AHRS.Roll_Total_Angle = 360.0f * AHRS.Roll_Round_Count + AHRS.Roll;
+
+    AHRS.Yaw_Angle_Last = AHRS.Yaw;
+    AHRS.Pitch_Angle_Last = AHRS.Pitch;
+    // AHRS.Roll_Angle_Last = AHRS.Roll;
+
+    count = 1;
 }
 
 static float invSqrt(float x)
