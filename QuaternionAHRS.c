@@ -299,7 +299,7 @@ void Get_EulerAngle(void)
     {
         AHRS.Yaw_Angle_Last = AHRS.Yaw;
         AHRS.Pitch_Angle_Last = AHRS.Pitch;
-        AHRS.Roll_Angle_Last = AHRS.Roll;
+        //AHRS.Roll_Angle_Last = AHRS.Roll;
     }
 
     // Yaw rount count
